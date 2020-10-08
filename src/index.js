@@ -79,7 +79,7 @@ async function waitOnMaybe (buildUtils, options = {}) {
   }
 }
 
-async function runCypressTests (baseUrl, record, spec, group, tag) {
+async function runCypressTests (baseUrl, record, spec, group, tag, reporter, reporterOptions = {}) {
   // we will use Cypress via its NPM module API
   // https://on.cypress.io/module-api
   const cypress = require('cypress')
@@ -101,7 +101,9 @@ async function runCypressTests (baseUrl, record, spec, group, tag) {
     record,
     group,
     tag,
-    ciBuildId
+    ciBuildId,
+    reporter,
+    reporterOptions
   })
 }
 
@@ -152,7 +154,7 @@ const processCypressResults = (results, buildUtils) => {
   }
 }
 
-async function postBuild({ fullPublishFolder, record, spec, group, tag, spa, buildUtils }) {
+async function postBuild({ fullPublishFolder, record, spec, group, tag, spa, buildUtils, reporter, reporterOptions }) {
   const port = 8080
   let server
 
@@ -165,7 +167,7 @@ async function postBuild({ fullPublishFolder, record, spec, group, tag, spa, bui
 
   const baseUrl = `http://localhost:${port}`
 
-  const results = await runCypressTests(baseUrl, record, spec, group, tag)
+  const results = await runCypressTests(baseUrl, record, spec, group, tag, reporter, reporterOptions)
 
   await new Promise((resolve, reject) => {
     server.close(err => {
@@ -211,7 +213,10 @@ module.exports = {
         }
       }
 
-      const results = await runCypressTests(baseUrl, record, spec, group, tag)
+      const reporter = arg.inputs.reporter
+      const reporterOptions = arg.inputs.reporterOptions
+
+      const results = await runCypressTests(baseUrl, record, spec, group, tag, reporter, reporterOptions)
 
       if (closeServer) {
         debug('closing server')
@@ -231,7 +236,6 @@ module.exports = {
       // only if the user wants to record the tests and has set the record key
       // then we should attempt recording
       const record = hasRecordKey() && Boolean(arg.inputs.record)
-
       const spec = arg.inputs.spec
       let group
       let tag
@@ -245,6 +249,8 @@ module.exports = {
         }
       }
       const spa = arg.inputs.spa
+      const reporter = arg.inputs.reporter
+      const reporterOptions = arg.inputs.reporterOptions
 
       const buildUtils = arg.utils.build
 
@@ -256,6 +262,8 @@ module.exports = {
         tag,
         spa,
         buildUtils,
+        reporter,
+        reporterOptions
       })
     }
 }
