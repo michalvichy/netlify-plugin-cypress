@@ -8,6 +8,8 @@ inputs:
   - name: group
   - name: tag
   - name: spa
+  - name: reporter
+  - name: reporterOptions
 
   # tells the plugin how to start the server using custom command
   # and waiting for an url, record to the dashboard, tag, etc
